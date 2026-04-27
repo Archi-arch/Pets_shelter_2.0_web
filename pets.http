@@ -1,0 +1,36 @@
+GET http://localhost:5161/pets
+
+###
+GET http://localhost:5161/pets/10
+
+###
+
+POST http://localhost:5161/pets
+Content-Type: application/json
+
+{
+  "species": "bilka",
+  "age": 30,
+  "nickname": "Bydun",
+  "description": "orange bilka",
+  "personality": "alkoholick",
+  "donation": 0.7,
+  "admisisonDate": "2023-04-26"
+}
+
+###
+PUT http://localhost:5161/pets/1
+Content-Type: application/json
+
+{
+  "species": "cat",
+  "age": 1.7,
+  "nickname": "Bobik",
+  "description": "very shy and fat cat",
+  "personality": "shy",
+  "donation": 10.00,
+  "admisisonDate": "2026-03-12"
+}
+
+###
+DELETE http://localhost:5161/pets/1
