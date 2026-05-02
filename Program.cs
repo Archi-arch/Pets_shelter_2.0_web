@@ -11,6 +11,8 @@ var app = builder.Build();
 app.MapGet("/", () => "Hello World!");
 
 app.MapPetsEndpoints();
+app.MapSpeciesEndpoints();
+
 
 app.MigrateDb();
 

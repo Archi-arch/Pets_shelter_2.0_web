@@ -12,41 +12,7 @@ public static class Endpoints
 {
 
     const string GetPetEndpointName = "GetPet";
-    private static readonly List<PetsSummarydto> pets = [
-
-
-        new (
-            1,
-            "cat",
-            1.5,
-            "Bobi",
-            "very shy and fat cat",
-            "shy",
-            0.00M,
-            new DateOnly(2026, 3, 12)
-        ),
-        new (
-            2,
-            "dog",
-            2.0,
-            "Barsik",
-            "brown",
-            "pos",
-            12.45M,
-            new DateOnly(2025, 4, 26)
-        ),
-        new (
-            3,
-            "jaba",
-            0.5,
-            "Ropa",
-            "",
-            "green",
-            5.15M,
-            new DateOnly(2026, 1, 1)
-        )
-        ];
-
+   
     public static void MapPetsEndpoints(this WebApplication app)
     {
 
