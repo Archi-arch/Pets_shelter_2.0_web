@@ -1,8 +1,8 @@
 namespace Pet_shelter_learning.dtos;
 
-public record Pets_dto(
+public record PetsDetailsDto(
     int Id,
-    string Species,
+    int SpeciesId,
     double Age,
     string Nickname,
     string Description,
@@ -11,4 +11,3 @@ public record Pets_dto(
     DateOnly AdmisisonDate
     
 );
-

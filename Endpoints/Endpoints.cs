@@ -1,5 +1,8 @@
 
+using Microsoft.EntityFrameworkCore;
+using Pet_shelter_learning.Data;
 using Pet_shelter_learning.dtos;
+using Pet_shelter_learning.Models;
 
 
 
@@ -9,7 +12,7 @@ public static class Endpoints
 {
 
     const string GetPetEndpointName = "GetPet";
-    private static readonly List<Pets_dto> pets = [
+    private static readonly List<PetsSummarydto> pets = [
 
 
         new (
@@ -50,70 +53,119 @@ public static class Endpoints
         var group = app.MapGroup("/pets");
 
         // get pets
-        group.MapGet("/", () => pets);
+        group.MapGet("/", async (Pet_shelter_context dbContext) => await dbContext.Pets
+        .Include(Pet => Pet.Species)
+        .Select(Pet => new PetsSummarydto(
+            Pet.Id,
+            Pet.Species!.Name,
+            Pet.Age,
+            Pet.Nickname!,
+            Pet.Description!,
+            Pet.Personality!,
+            Pet.Donation,
+            Pet.AdmisisonDate
+        ))
+        .AsNoTracking()
+        .ToListAsync());
         // get pet
-        group.MapGet("/{id}", (int id) =>
+        group.MapGet("/{id}", async (int id, Pet_shelter_context dbContext) =>
         {
-            var pet = pets.Find(pets => pets.Id == id);
+            var pet = await dbContext.Pets.FindAsync(id);
 
-            return pet is null ? Results.NotFound() : Results.Ok(pet);
+            return pet is null ? Results.NotFound() : Results.Ok(
+                new PetsDetailsDto(
+                pet.Id,
+                pet.SpeciesId,
+                pet.Age,
+                pet.Nickname!,
+                pet.Description!,
+                pet.Personality!,
+                pet.Donation,
+                pet.AdmisisonDate
+            ));
         }).WithName(GetPetEndpointName);
 
 
         // post
-        group.MapPost("/", (CreatePetsDto newPet) =>
+        group.MapPost("/", async (CreatePetsDto newPet, Pet_shelter_context dbContext) =>
         {
-            Pets_dto pet = new(
-                pets.Count + 1,
-                newPet.Species,
-                newPet.Age,
-                newPet.Nickname,
-                newPet.Description,
-                newPet.Personality,
-                0.00M,
-                DateOnly.FromDateTime(DateTime.Now)
+
+            Pet pet = new()
+            {
+                SpeciesId = newPet.SpeciesId,
+                Age = newPet.Age,
+                Nickname = newPet.Nickname,
+                Description = newPet.Description,
+                Personality = newPet.Personality,
+                Donation = 0.00M,
+                AdmisisonDate = DateOnly.FromDateTime(DateTime.Now)
+            };
+
+            // Pets_dto pet = new(
+            //     pets.Count + 1,
+            //     newPet.Species,
+            //     newPet.Age,
+            //     newPet.Nickname,
+            //     newPet.Description,
+            //     newPet.Personality,
+            //     0.00M,
+            //     DateOnly.FromDateTime(DateTime.Now)
+            //);
+
+            dbContext.Pets.Add(pet);
+            await dbContext.SaveChangesAsync();
+
+
+            PetsDetailsDto Pets_dto = new(
+                pet.Id,
+                pet.SpeciesId,
+                pet.Age,
+                pet.Nickname,
+                pet.Description,
+                pet.Personality,
+                pet.Donation,
+                pet.AdmisisonDate
+
             );
 
-            pets.Add(pet);
-
-            return Results.CreatedAtRoute(GetPetEndpointName, new { id = pet.Id }, pet);
+            return Results.CreatedAtRoute(GetPetEndpointName, new { id = Pets_dto.Id }, Pets_dto);
         });
 
         //put
 
-        group.MapPut("/{id}", (int id, UpdatePetDto updatedPet) =>
+        group.MapPut("/{id}", async (
+            int id, 
+            UpdatePetDto updatedPet, 
+            Pet_shelter_context dbContext) =>
         {
-            var index = pets.FindIndex(pet => pet.Id == id);
+            var existingPet = await dbContext.Pets.FindAsync(id);
 
-            if (index == -1)
+            if (existingPet is null)
             {
                 return Results.NotFound();
             }
+
+                existingPet.SpeciesId = updatedPet.SpeciesId;
+                existingPet.Age = updatedPet.Age;
+                existingPet.Nickname = updatedPet.Nickname;
+                existingPet.Description = updatedPet.Description;
+                existingPet.Personality = updatedPet.Personality;
+                existingPet.Donation = existingPet.Donation;
+                existingPet.AdmisisonDate = existingPet.AdmisisonDate;
+
+                await dbContext.SaveChangesAsync();
             
-            var existingPet = pets[index];
-
-
-
-            pets[index] = new Pets_dto(
-                id,
-                updatedPet.Species,
-                updatedPet.Age,
-                updatedPet.Nickname,
-                updatedPet.Description,
-                updatedPet.Personality,
-                existingPet.Donation,
-                existingPet.AdmisisonDate
-            );
 
             return Results.NoContent();
         });
 
         // delete
 
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", async (int id, Pet_shelter_context dbContext) =>
         {
-            pets.RemoveAll(pet => pet.Id == id);
-
+            await dbContext.Pets
+                            .Where(pet => pet.Id == id)
+                            .ExecuteDeleteAsync();
             return Results.NoContent();
         });
     }
